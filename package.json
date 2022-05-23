@@ -1,0 +1,23 @@
+{
+  "name": "esay-eval",
+  "version": "1.0.1",
+  "description": "eval with context, execute script block, pass parameters, global function variables",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/vblegend/script-runner.git"
+  },
+  "keywords": [
+    "eval with context",
+    "execute script"
+  ],
+  "author": "hanks",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/vblegend/script-runner/issues"
+  },
+  "homepage": "https://github.com/vblegend/script-runner#readme"
+}
