@@ -1,23 +1,21 @@
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
 /**
- * 脚本的执行上下文环境
- * 被注册的对象可以在脚本中直接以名称访问
+* The execution context of the script
+* Registered objects can be accessed directly by name in scripts
  */
- export class ScriptEvalContext {
+export class ScriptEvalContext {
     private registerNames: string[] = [];
     private registerValues: any[] = [];
 
     /**
-     * 创建一个脚本执行上下文对象
-     * @param baseContext 从一个旧的复制所有注册环境
+     * Create a script execution context object
+     * @param baseContext Copy all registered environments from an old one
+     * @param initLib Initialize the default library
      */
-    constructor(baseContext?: ScriptEvalContext) {
+    constructor(baseContext?: ScriptEvalContext, initLib?: boolean) {
         if (baseContext) {
             this.registerNames = baseContext.names;
             this.registerValues = baseContext.values;
-        } else {
+        } else if (initLib) {
             this.register('$floor', Math.floor);
             this.register('$random', Math.random);
             this.register('$max', Math.max);
@@ -32,9 +30,15 @@
         }
     }
 
+
+    public clear(): void {
+        this.registerNames.length = 0;
+        this.registerValues.length = 0;
+    }
+
     /**
-     * 注册一个变量/对象/函数 到脚本的执行上下文中\
-     * 不要注册值类型，值类型只能作为常量 不能修改。
+     * Register a variable/object/function into the execution context of the script \
+     * Do not register value types. Value types can only be treated as constants and cannot be modified.
      * @param name 名字
      * @param object 对象
      */
@@ -50,7 +54,7 @@
     }
 
     /**
-     * 移除一个已注册的对象
+     * Removes a registered object
      * @param name 
      */
     public remove(name: string): void {
@@ -62,7 +66,7 @@
     }
 
     /**
-     * 获取一个注册的对象
+     * Gets a registered object
      */
     public get(name: string): any {
         const index = this.registerNames.indexOf(name);
@@ -70,43 +74,33 @@
         return null;
     }
 
-
     /**
-     * 获取已注册的所有名字
+     * Gets all registered names
      */
     public get names(): string[] {
         return this.registerNames.slice();
     }
 
     /**
-     * 获取已注册的所有对象
+     * Gets all registered objects
      */
     public get values(): any[] {
         return this.registerValues.slice();
     }
-
-
-
-    public dispose(): void {
-        this.registerNames.length = 0;
-        this.registerValues.length = 0;
-    }
-
-
 }
 
 /**
- * 支持上下文的脚本执行器工具类
+ * Context-enabled script executor
  */
-export class EsayEval {
+export class ScriptRunner {
 
     /**
-     * 构建一个脚本方法对象
-     * @param script 脚本
-     * @param argNames 脚本的参数变量名列表
-     * @param thisContext 脚本的this上下文对象
-     * @param globalContext 脚本的全局变量对象，上下文中值类型对象在构建后将不可改变。
-     * @returns 函数对象
+     * Build a script method object
+     * @param script script
+     * @param argNames A list of parameter variable names for the script
+     * @param thisContext This context object for the script
+     * @param globalContext The global variable object of the script, the context value type object will be immutable after the build.
+     * @returns The function object
      */
     public static buildFunction(script: string, argNames?: string[], thisContext?: Object, globalContext?: ScriptEvalContext): Function {
         const globalVars = globalContext ? globalContext.names.join(', ') : '';
@@ -119,19 +113,28 @@ export class EsayEval {
 
 
     /**
-     * 执行一个无参数的脚本
-     * @param script 脚本
-     * @param params 脚本的调用参数
-     * @param thisContext 脚本this 上下文对象 
-     * @param globalContext 全局上下文对象，上下文中值类型对象在构建后将不可改变。
-     * @returns 
+     * Execute a script with no arguments
+     * @param script script
+     * @param parameters The call parameters of the script
+     * @param thisContext This context object for the script 
+     * @param globalContext The global context object, the context value type object will be immutable after construction.
+     * @returns execution result
      */
-    public static eval<TResult>(script: string, params: Record<string, any>, thisContext?: Object, globalContext?: ScriptEvalContext): TResult {
-        if (params == null) params = {};
-        const func = this.buildFunction(script, Object.keys(params), thisContext, globalContext);
-        return func(...Object.values(params));
+    public static eval<TResult>(script: string, parameters: Record<string, any>, thisContext?: Object, globalContext?: ScriptEvalContext): TResult {
+        if (parameters == null) parameters = {};
+        const properties = ScriptRunner.getProperties(parameters);
+        const func = this.buildFunction(script, properties.keys, thisContext, globalContext);
+        return func(...properties.values);
     }
 
 
+    private static getProperties(parameters: Record<string, any>): { keys: string[], values: any[] } {
+        const result: { keys: string[], values: any[] } = { keys: [], values: [] };
+        for (const key in parameters) {
+            result.keys.push(key);
+            result.values.push(parameters[key]);
+        }
+        return result;
+    }
 
 }

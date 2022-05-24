@@ -1,4 +1,4 @@
-Easy Script Runner
+Script Runner
 =======
 
 Make your eval pass parameters and specify this context when executing the script, and you can register global functions and variables for him.
@@ -8,31 +8,31 @@ License: MIT
 
 `install`
 ```
-npm install esay-eval
+npm install script-eval-js
 
 
-import { EsayEval } from 'esay-eval';
+import { ScriptRunner } from 'script-eval-js';
 ```
 
 
 
 `examples`
 ``` typescript
-const result = EsayEval.eval(`1+1`);
+const result = ScriptRunner.eval(`1+1`);
 console.log(result);
 ```
 
 ``` typescript
-const result = EsayEval.eval(`console.log(this);`);
+const result = ScriptRunner.eval(`console.log(this);`);
 console.log(result);
 ```
 
 ``` typescript
-const result = EsayEval.eval(`console.log(id+name);`, { id: 100,  name: 'script runner' });
+const result = ScriptRunner.eval(`console.log(id+name);`, { id: 100,  name: 'script runner' });
 console.log(result);
 ```
 ``` typescript
-const func = EsayEval.buildFunction(`console.log(this); return id + name;`, ['id','name'],this);
+const func = ScriptRunner.buildFunction(`console.log(this); return id + name;`, ['id','name'],this);
 const result = func(100,'script runner');
 console.log(result);
 ```
@@ -82,7 +82,7 @@ export declare class ScriptEvalContext {
 }
 
 
-export declare abstract class EsayEval {
+export declare abstract class ScriptRunner {
 
     public static buildFunction(script: string, argNames?: string[], thisContext?: Object, globalContext?: ScriptEvalContext): Function;
 
