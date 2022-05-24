@@ -1,25 +1,15 @@
 "use strict";
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-/* eslint-disable @typescript-eslint/no-explicit-any */
-exports.__esModule = true;
+Object.defineProperty(exports, "__esModule", { value: true });
 exports.ScriptRunner = exports.ScriptEvalContext = void 0;
-/**
- * 脚本的执行上下文环境
- * 被注册的对象可以在脚本中直接以名称访问
- */
-var ScriptEvalContext = /** @class */ (function () {
-    /**
-     * 创建一个脚本执行上下文对象
-     * @param baseContext 从一个旧的复制所有注册环境
-     */
-    function ScriptEvalContext(baseContext) {
+var ScriptEvalContext = (function () {
+    function ScriptEvalContext(baseContext, initLib) {
         this.registerNames = [];
         this.registerValues = [];
         if (baseContext) {
             this.registerNames = baseContext.names;
             this.registerValues = baseContext.values;
         }
-        else {
+        else if (initLib) {
             this.register('$floor', Math.floor);
             this.register('$random', Math.random);
             this.register('$max', Math.max);
@@ -33,12 +23,10 @@ var ScriptEvalContext = /** @class */ (function () {
             this.register('$vars', {});
         }
     }
-    /**
-     * 注册一个变量/对象/函数 到脚本的执行上下文中\
-     * 不要注册值类型，值类型只能作为常量 不能修改。
-     * @param name 名字
-     * @param object 对象
-     */
+    ScriptEvalContext.prototype.clear = function () {
+        this.registerNames.length = 0;
+        this.registerValues.length = 0;
+    };
     ScriptEvalContext.prototype.register = function (name, object) {
         var index = this.registerNames.indexOf(name);
         if (index > -1) {
@@ -50,10 +38,6 @@ var ScriptEvalContext = /** @class */ (function () {
             this.registerValues.push(object);
         }
     };
-    /**
-     * 移除一个已注册的对象
-     * @param name
-     */
     ScriptEvalContext.prototype.remove = function (name) {
         var index = this.registerNames.indexOf(name);
         if (index > -1) {
@@ -61,9 +45,6 @@ var ScriptEvalContext = /** @class */ (function () {
             this.registerValues.splice(index, 1);
         }
     };
-    /**
-     * 获取一个注册的对象
-     */
     ScriptEvalContext.prototype.get = function (name) {
         var index = this.registerNames.indexOf(name);
         if (index > -1)
@@ -71,9 +52,6 @@ var ScriptEvalContext = /** @class */ (function () {
         return null;
     };
     Object.defineProperty(ScriptEvalContext.prototype, "names", {
-        /**
-         * 获取已注册的所有名字
-         */
         get: function () {
             return this.registerNames.slice();
         },
@@ -81,36 +59,18 @@ var ScriptEvalContext = /** @class */ (function () {
         configurable: true
     });
     Object.defineProperty(ScriptEvalContext.prototype, "values", {
-        /**
-         * 获取已注册的所有对象
-         */
         get: function () {
             return this.registerValues.slice();
         },
         enumerable: false,
         configurable: true
     });
-    ScriptEvalContext.prototype.dispose = function () {
-        this.registerNames.length = 0;
-        this.registerValues.length = 0;
-    };
     return ScriptEvalContext;
 }());
 exports.ScriptEvalContext = ScriptEvalContext;
-/**
- * 支持上下文的脚本执行器工具类
- */
-var ScriptRunner = /** @class */ (function () {
+var ScriptRunner = (function () {
     function ScriptRunner() {
     }
-    /**
-     * 构建一个脚本方法对象
-     * @param script 脚本
-     * @param argNames 脚本的参数变量名列表
-     * @param thisContext 脚本的this上下文对象
-     * @param globalContext 脚本的全局变量对象，上下文中值类型对象在构建后将不可改变。
-     * @returns 函数对象
-     */
     ScriptRunner.buildFunction = function (script, argNames, thisContext, globalContext) {
         var globalVars = globalContext ? globalContext.names.join(', ') : '';
         var globalVarValues = globalContext ? globalContext.values : [];
@@ -119,20 +79,22 @@ var ScriptRunner = /** @class */ (function () {
         var myFunction = func.apply(void 0, globalVarValues);
         return thisContext ? myFunction.bind(thisContext) : myFunction;
     };
-    /**
-     * 执行一个无参数的脚本
-     * @param script 脚本
-     * @param params 脚本的调用参数
-     * @param thisContext 脚本this 上下文对象
-     * @param globalContext 全局上下文对象，上下文中值类型对象在构建后将不可改变。
-     * @returns
-     */
-    ScriptRunner.eval = function (script, params, thisContext, globalContext) {
-        if (params == null)
-            params = {};
-        var func = this.buildFunction(script, Object.keys(params), thisContext, globalContext);
-        return func.apply(void 0, Object.values(params));
+    ScriptRunner.eval = function (script, parameters, thisContext, globalContext) {
+        if (parameters == null)
+            parameters = {};
+        var properties = ScriptRunner.getProperties(parameters);
+        var func = this.buildFunction(script, properties.keys, thisContext, globalContext);
+        return func.apply(void 0, properties.values);
+    };
+    ScriptRunner.getProperties = function (parameters) {
+        var result = { keys: [], values: [] };
+        for (var key in parameters) {
+            result.keys.push(key);
+            result.values.push(parameters[key]);
+        }
+        return result;
     };
     return ScriptRunner;
 }());
 exports.ScriptRunner = ScriptRunner;
+//# sourceMappingURL=index.js.map

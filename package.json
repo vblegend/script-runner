@@ -1,16 +1,16 @@
 {
-  "name": "esay-eval",
-  "version": "1.0.1",
+  "name": "script-eval-js",
+  "version": "1.0.2",
   "description": "eval with context, execute script block, pass parameters, global function variables",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/vblegend/script-runner.git"
   },
+  "scripts": {
+    "build": "tsc ./src/index.ts --declaration --sourceMap --removeComments --target es5"
+  },
   "keywords": [
+    "eval",
     "eval with context",
     "execute script"
   ],
@@ -19,5 +19,19 @@
   "bugs": {
     "url": "https://github.com/vblegend/script-runner/issues"
   },
-  "homepage": "https://github.com/vblegend/script-runner#readme"
+  "homepage": "https://github.com/vblegend/script-runner#readme",
+  "type": "module",
+  "exports": {
+    "./package.json": {
+      "default": "./package.json"
+    },
+    ".": {
+      "types": "./src/index.d.ts",
+      "esm2020": "./src/index.js",
+      "es2020": "./src/index.js",
+      "es2015": "./src/index.js",
+      "node": "./src/index.js",
+      "default": "./src/index.js"
+    }
+  }
 }
